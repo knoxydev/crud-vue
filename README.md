@@ -1,4 +1,4 @@
-# furer_crud
+# crud-vue
 
 ## Project setup
 ```

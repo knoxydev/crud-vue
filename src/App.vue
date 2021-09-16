@@ -7,21 +7,21 @@
 		<div id="add_data_block">
 			<div>Add data to database</div>
 
-			<label for="add_data_blc_a">Address</label>
+			<label for="add_data_blc_a">Name</label>
 			<input 
 				v-bind:value="inp_data_name"
 				@input="inp_data_name = $event.target.value"
 				type="text" 
 				id="add_data_blc_a"
-				placeholder="Enter Address"><br>
+				placeholder="Enter Name"><br>
 
-			<label for="add_data_blc_n">Name</label>
+			<label for="add_data_blc_n">Address</label>
 			<input 
 				v-bind:value="inp_data_address"
 				@input="inp_data_address = $event.target.value"
 				type="text"
 				id="add_data_blc_n"
-				placeholder="Enter Name"><br>
+				placeholder="Enter Address"><br>
 
 			<label for="add_data_blc_c">Cost</label>
 			<input 
@@ -36,30 +36,68 @@
 
 		<br><br>
 
+		<div id="edit_data_block">
+			<div>Edit data to database</div>
+
+			<label for="edit_data_blc_i">ID</label>
+			<input 
+				v-bind:value="edit_inp_data_id"
+				@input="edit_inp_data_id = $event.target.value"
+				type="number" 
+				id="edit_data_blc_i"
+				placeholder="Enter ID"><br>
+
+			<label for="edit_data_blc_a">Name</label>
+			<input 
+				v-bind:value="edit_inp_data_name"
+				@input="edit_inp_data_name = $event.target.value"
+				type="text" 
+				id="edit_data_blc_a"
+				placeholder="Enter new Name"><br>
+
+			<label for="edit_data_blc_n">Address</label>
+			<input 
+				v-bind:value="edit_inp_data_address"
+				@input="edit_inp_data_address = $event.target.value"
+				type="text"
+				id="edit_data_blc_n"
+				placeholder="Enter new Address"><br>
+
+			<label for="edit_data_blc_c">Cost</label>
+			<input 
+				v-bind:value="edit_inp_data_cost"
+				@input="edit_inp_data_cost = $event.target.value"
+				type="number"
+				id="edit_data_blc_c"
+				placeholder="Enter new Cost"><br>
+
+			<button @click="editDataBtn()"><b>Edit</b></button>
+		</div>
+
+		<br><br>
+
 		<div id="delete_data_block">
 			<div>Enter user ID to delete data from the database</div>
 			<input
 				type="text"
 				placeholder="enter ID"
 				@input="inp_del_id = $event.target.value">
-			<button @click="addDeleteBtn()"><b>Delete</b></button>
+			<button @click="deleteBtn()"><b>Delete</b></button>
 		</div>
-
-		<br><br>
-
-		<button @click="updateDB_btn()" id="update_db_btn">Refresh database</button>
 
 		<br><br>
 
 		<div id="data-block">
 			<div id="all_data_blc_title">All Data ({{this.base.length}})</div>
-			<ul v-for="item in this.base">
+			<ul v-for="item in this.paginatedData">
 				<li><b>id: {{item.id}}</b></li>
 				<li><b>Address: {{item.address}}</b></li>
 				<li><b>Name: {{item.name_uz}}</b></li>
 				<li><b>Cost: {{item.cost}}</b></li>
 				<li><b>Product type ID: {{item.product_type_id}}</b></li>
 			</ul>
+			<button @click="prevPage()">Prev</button>
+			<button @click="nextPage()">Next</button>
 		</div>
 
 	</div>
@@ -73,10 +111,17 @@ export default {
 	data() {
 		return {
 			base: [],
-			inp_data_name: "",
-			inp_data_address: "",
-			inp_data_cost: 0,
-			inp_del_id: 0
+			pagination: [],
+
+			inp_data_name: String(""),
+			inp_data_address: String(""),
+			inp_data_cost: Number(0),
+			inp_del_id: Number(0),
+
+			edit_inp_data_id: Number(0),
+			edit_inp_data_name: String(""),
+			edit_inp_data_address: String(""),
+			edit_inp_data_cost: Number(0),
 		}
 	},
 	methods: {
@@ -84,7 +129,7 @@ export default {
   		let rand = min + Math.random() * (max + 1 - min);
   		return Math.floor(rand);
 		},
-		async updateDB_btn() {
+		async updateDB() {
 			try {
 				let response = await fetch("http://94.158.54.194:9092/api/product", {
   				method: "GET",
@@ -108,13 +153,50 @@ export default {
   				body: JSON.stringify(data),
   			});
 			} catch (error) {}
+
+			this.updateDB();
 		},
-		async addDeleteBtn() {
+		async editDataBtn() {
+			let editing_data;
+
+			try {
+				let response = await fetch("http://94.158.54.194:9092/api/product?page=1&perPage=10", {
+  				method: "GET"
+  			}).then(async (response) => await response.json())
+  			.then((result) => editing_data = result);
+			} catch (error) {alert(error.message);}	
+
+			editing_data.forEach((item) => {
+				if (item.id == Number(this.edit_inp_data_id)) editing_data = item;
+			});
+
+			let data = {
+				"id": Number(this.edit_inp_data_id),
+  			"name_uz": this.edit_inp_data_name,
+  			"cost": Number(this.edit_inp_data_cost),
+  			"address": this.edit_inp_data_address,
+  			"created_date": editing_data.created_date,
+  			"product_type_id" : editing_data.product_type_id,
+			}
+			
+			try {
+				let response = await fetch("http://94.158.54.194:9092/api/product", {
+  				method: "PUT",
+  				headers: {'Content-Type': 'application/json;charset=utf-8'},
+  				body: JSON.stringify(data),
+  			});
+			} catch (error) {}
+
+			this.updateDB();
+		},
+		async deleteBtn() {
 			try {
 				let response = await fetch("http://94.158.54.194:9092/api/product/" + this.inp_del_id, {
   				method: "DELETE"
   			});
 			} catch (error) {alert(error.message);}	
+
+			this.updateDB();
 		},
 		async fetch_data() {
 			try {
@@ -122,7 +204,9 @@ export default {
   				method: "GET"
   			}).then(async (response) => await response.json())
   			.then((result) => this.base = result);
-			} catch (error) {alert(error.message);}	
+			} catch (error) {alert(error.message);}
+			this.pagination = this.base;
+			console.log(this.pagination);
 		},
 	},
 	mounted() {
@@ -222,7 +306,7 @@ button:focus {outline: none;}
 }
 
 
-#add_data_block {
+#add_data_block,#edit_data_block {
 	background: white;
 	padding: 12px;
 	display: flex;
@@ -232,24 +316,24 @@ button:focus {outline: none;}
 	border-radius: 6px;
 	box-shadow: var(--blocks-shadow);
 }
-#add_data_block div {
+#add_data_block div, #edit_data_block div {
 	font-size: 17pt;
 	padding: 12px;
 	font-weight: bold;
 }
-#add_data_block label {
+#add_data_block label, #edit_data_block label {
 	font-size: 14pt;
 	margin-bottom: 4px;
 }
-#add_data_block input {
+#add_data_block input, #edit_data_block input {
 	padding: 6px;
 	font-size: 14pt;
 	margin-bottom: 6px;
 	border: 2px solid #999999;
 	border-radius: 5px;
 }
-#add_data_block input:focus {border: 2px solid mediumblue;}
-#add_data_block button {
+#add_data_block input:focus, #edit_data_block input:focus {border: 2px solid mediumblue;}
+#add_data_block button, #edit_data_block button {
 	padding: 8px;
 	border: 1px solid mediumblue;
 	border-radius: 5px;
@@ -259,22 +343,10 @@ button:focus {outline: none;}
 	letter-spacing: 1px;
 	width: 150px;
 }
-#add_data_block button:hover {
+#add_data_block button:hover, #edit_data_block button:hover {
 	background: mediumblue;
 	color: white;
 }
 
-#update_db_btn {
-	width: 100%;
-	background: white;
-	padding: 12px;
-	letter-spacing: 1.5px;
-	font-size: 17pt;
-	border: 2px solid white;
-	border-radius: 6px;
-	box-shadow: var(--blocks-shadow);
-	transform: translateY(0px);
-}
-#update_db_btn:active {transform: translateY(-10px);}
 
 </style>

@@ -88,17 +88,19 @@
 		<br><br>
 
 		<div id="data-block">
-			<div id="all_data_blc_title">All Data ({{this.base.length}})</div>
-			<ul v-for="item in this.paginatedData">
+			<div id="all_data_blc_title">All Data ({{this.base.length}})</div><br>
+			<div id="all_data_len_btn_block">
+				<button id="all_data_len_btn" @click="pagiButtons($event)" v-for="item in this.pagiDB.length">{{item}}</button>
+			</div>
+
+			<ul v-for="item in this.pagination">
 				<li><b>id: {{item.id}}</b></li>
 				<li><b>Address: {{item.address}}</b></li>
 				<li><b>Name: {{item.name_uz}}</b></li>
 				<li><b>Cost: {{item.cost}}</b></li>
 				<li><b>Product type ID: {{item.product_type_id}}</b></li>
 			</ul>
-			<button @click="prevPage()">Prev</button>
-			<button @click="nextPage()">Next</button>
-		</div>
+		</div><br><br>
 
 	</div>
 	<br>
@@ -112,6 +114,9 @@ export default {
 		return {
 			base: [],
 			pagination: [],
+			pagiDB: [],
+			pageInt: Number(1),
+			lastBtn: Number(0),
 
 			inp_data_name: String(""),
 			inp_data_address: String(""),
@@ -125,9 +130,30 @@ export default {
 		}
 	},
 	methods: {
+		createPagination() {
+			let array = this.base;
+			let size = 3;
+
+			for (let i = 0; i <Math.ceil(array.length/size); i++) {
+				this.pagiDB[i] = array.slice((i*size), (i*size) + size);
+			}
+			this.pagination = this.pagiDB[this.pageInt - 1];
+		},
+		pagiButtons(event) {
+			this.pageInt = Number(event.target.innerHTML);
+			this.pagination = this.pagiDB[this.pageInt - 1];
+
+			try {this.lastBtn.style = "border: 2px solid transparent; background: white";}
+			catch (e) {console.log(e.message)}
+
+			event.target.style = "border: 2px solid springgreen; background: springgreen";
+			this.lastBtn = event.target;
+
+			console.log(event.target);
+		},
 		generateProductID(min, max) {
-  		let rand = min + Math.random() * (max + 1 - min);
-  		return Math.floor(rand);
+			let rand = min + Math.random() * (max + 1 - min);
+			return Math.floor(rand);
 		},
 		async updateDB() {
 			try {
@@ -136,6 +162,8 @@ export default {
   			}).then(async (response) => await response.json())
   			.then((result) => this.base = result);
 			} catch (error) {alert(error.message);}
+
+			this.createPagination();
 		},
 		async addDataBtn() {
 			let data = {
@@ -206,12 +234,11 @@ export default {
   			.then((result) => this.base = result);
 			} catch (error) {alert(error.message);}
 			this.pagination = this.base;
-			console.log(this.pagination);
+
+			this.createPagination();
 		},
 	},
-	mounted() {
-		this.fetch_data();
-	}
+	mounted() {this.fetch_data();}
 }
 
 </script>
@@ -267,6 +294,27 @@ button:focus {outline: none;}
 }
 #data-block ul:nth-last-child(1) {border-bottom: 2px solid transparent;}
 #data-block ul li {padding-bottom: 4px;}
+
+#all_data_len_btn_block {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	padding: 6px;	
+}
+#all_data_len_btn_block button {
+	border: 2px solid transparent;
+	padding: 8px;
+	background: white;
+	color: black;
+	font-size: 18pt;
+	width: 60px;
+	font-weight: bold;
+	border-radius: 7px;
+	transform: translateY(0px);
+}
+
+#all_data_len_btn_block button:active {transform: translateY(-15px);}
+#all_data_len_btn_block button:hover {background: springgreen;}
 
 
 #delete_data_block {

@@ -4,85 +4,57 @@
 	<div id="all_data_main_block">
 		<br>
 
-		<div id="add_data_block">
+		<button id="show-add-blc-btn" @click="showAddBlock()">Add Data</button>
+
+		<br>
+
+		<my-add-block v-model:show="add_block_visible">
 			<div>Add data to database</div>
 
-			<label for="add_data_blc_a">Name</label>
-			<input 
-				v-bind:value="inp_data_name"
-				@input="inp_data_name = $event.target.value"
-				type="text" 
-				id="add_data_blc_a"
-				placeholder="Enter Name"><br>
-
-			<label for="add_data_blc_n">Address</label>
-			<input 
-				v-bind:value="inp_data_address"
-				@input="inp_data_address = $event.target.value"
+			<my-input 
+				v-model="inp_data_name"
 				type="text"
-				id="add_data_blc_n"
-				placeholder="Enter Address"><br>
+				placeholder="Enter Name" /><br>
 
-			<label for="add_data_blc_c">Cost</label>
-			<input 
-				v-bind:value="inp_data_cost"
-				@input="inp_data_cost = $event.target.value"
+			<my-input 
+				v-model="inp_data_address"
+				type="text"
+				placeholder="Enter Address" /><br>
+
+			<my-input 
+				v-model="inp_data_cost"
 				type="number"
-				id="add_data_blc_c"
-				placeholder="Enter Cost"><br>
+				placeholder="Enter Cost" /><br>
 
 			<button @click="addDataBtn()"><b>Add +</b></button>
-		</div>
+		</my-add-block>
 
 		<br><br>
 
 		<div id="edit_data_block">
 			<div>Edit data to database</div>
 
-			<label for="edit_data_blc_i">ID</label>
-			<input 
-				v-bind:value="edit_inp_data_id"
-				@input="edit_inp_data_id = $event.target.value"
+			<my-input 
+				v-model="edit_inp_data_id"
 				type="number" 
-				id="edit_data_blc_i"
-				placeholder="Enter ID"><br>
+				placeholder="Enter ID" /><br>
 
-			<label for="edit_data_blc_a">Name</label>
-			<input 
-				v-bind:value="edit_inp_data_name"
-				@input="edit_inp_data_name = $event.target.value"
-				type="text" 
-				id="edit_data_blc_a"
-				placeholder="Enter new Name"><br>
-
-			<label for="edit_data_blc_n">Address</label>
-			<input 
-				v-bind:value="edit_inp_data_address"
-				@input="edit_inp_data_address = $event.target.value"
+			<my-input 
+				v-model="edit_inp_data_name"
 				type="text"
-				id="edit_data_blc_n"
-				placeholder="Enter new Address"><br>
+				placeholder="Enter new Name" /><br>
 
-			<label for="edit_data_blc_c">Cost</label>
-			<input 
-				v-bind:value="edit_inp_data_cost"
-				@input="edit_inp_data_cost = $event.target.value"
+			<my-input 
+				v-model="edit_inp_data_address"
+				type="text"
+				placeholder="Enter new Address" /><br>
+
+			<my-input 
+				v-model="edit_inp_data_cost"
 				type="number"
-				id="edit_data_blc_c"
-				placeholder="Enter new Cost"><br>
+				placeholder="Enter new Cost" /><br>
 
 			<button @click="editDataBtn()"><b>Edit</b></button>
-		</div>
-
-		<br><br>
-
-		<div id="delete_data_block">
-			<div>Enter user ID to delete data from the database</div>
-			<input
-				type="text"
-				placeholder="enter ID"
-				@input="inp_del_id = $event.target.value">
-			<button @click="deleteBtn()"><b>Delete</b></button>
 		</div>
 
 		<br><br>
@@ -91,15 +63,18 @@
 			<div id="all_data_blc_title">All Data ({{this.base.length}})</div><br>
 			<div id="all_data_len_btn_block">
 				<button id="all_data_len_btn" @click="pagiButtons($event)" v-for="item in this.pagiDB.length">{{item}}</button>
-			</div>
+			</div><br>
 
-			<ul v-for="item in this.pagination">
-				<li><b>id: {{item.id}}</b></li>
-				<li><b>Address: {{item.address}}</b></li>
-				<li><b>Name: {{item.name_uz}}</b></li>
-				<li><b>Cost: {{item.cost}}</b></li>
-				<li><b>Product type ID: {{item.product_type_id}}</b></li>
-			</ul>
+			<div id="data-block-item" v-for="item in this.pagination">
+				<ul>
+					<li>id: <b>{{item.id}}</b></li>
+					<li>Address: <b>{{item.address}}</b></li>
+					<li>Name: <b>{{item.name_uz}}</b></li>
+					<li>Cost: <b>{{item.cost}}</b></li>
+					<li>Product type ID: <b>{{item.product_type_id}}</b></li>
+				</ul><br>
+				<button @click="deleteItemBtn($event)">Delete<span>{{item.id}}</span></button>
+			</div>
 		</div><br><br>
 
 	</div>
@@ -127,9 +102,12 @@ export default {
 			edit_inp_data_name: String(""),
 			edit_inp_data_address: String(""),
 			edit_inp_data_cost: Number(0),
+
+			add_block_visible: Boolean(false)
 		}
 	},
 	methods: {
+		showAddBlock() {this.add_block_visible = true;},
 		createPagination() {
 			let array = this.base;
 			let size = 3;
@@ -138,6 +116,15 @@ export default {
 				this.pagiDB[i] = array.slice((i*size), (i*size) + size);
 			}
 			this.pagination = this.pagiDB[this.pageInt - 1];
+		},
+		async deleteItemBtn(event) {
+			try {
+				let response = await fetch("http://94.158.54.194:9092/api/product/" + event.target.childNodes[1].innerHTML, {
+  				method: "DELETE"
+  			});
+			} catch (error) {alert(error.message);}	
+
+			this.updateDB();
 		},
 		pagiButtons(event) {
 			this.pageInt = Number(event.target.innerHTML);
@@ -148,8 +135,6 @@ export default {
 
 			event.target.style = "border: 2px solid springgreen; background: springgreen";
 			this.lastBtn = event.target;
-
-			console.log(event.target);
 		},
 		generateProductID(min, max) {
 			let rand = min + Math.random() * (max + 1 - min);
@@ -182,6 +167,7 @@ export default {
   			});
 			} catch (error) {}
 
+			this.add_block_visible = false;
 			this.updateDB();
 		},
 		async editDataBtn() {
@@ -217,15 +203,6 @@ export default {
 
 			this.updateDB();
 		},
-		async deleteBtn() {
-			try {
-				let response = await fetch("http://94.158.54.194:9092/api/product/" + this.inp_del_id, {
-  				method: "DELETE"
-  			});
-			} catch (error) {alert(error.message);}	
-
-			this.updateDB();
-		},
 		async fetch_data() {
 			try {
 				let response = await fetch("http://94.158.54.194:9092/api/product?page=1&perPage=10", {
@@ -245,7 +222,11 @@ export default {
 <style>
 
 :root {
+	--main-bg-clr: #032b43;
 	--blocks-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px;
+	--blue-clr: #032b43;
+	--delete-btn-clr: #d00000;
+	--radius-int: 10px;
 }
 
 * {
@@ -274,27 +255,34 @@ button:focus {outline: none;}
 	width: 80%;
 }
 
+#show-add-blc-btn {
+	padding: 8px;
+	border: 2px solid white;
+	border-radius: 6px;
+	background: white;
+	color: black;
+	font-size: 18px;
+	letter-spacing: 2px;
+	width: 130px;
+	box-shadow: var(--blocks-shadow);
+}
 #all_data_blc_title {
 	background: white;
 	font-size: 17pt;
 	padding: 12px;
 	font-weight: bold;
 }
+
+#show-add-blc-btn:hover {background: var(--blue-clr);color: white;}
+
+
 #data-block {
 	background: white;
 	padding: 12px;
 	border: 2px solid white;
-	border-radius: 6px;
+	border-radius: var(--radius-int);
 	box-shadow: var(--blocks-shadow);
 }
-#data-block ul {
-	background: white;
-	padding: 12px;
-	border-bottom: 2px solid #c0c0c0;
-}
-#data-block ul:nth-last-child(1) {border-bottom: 2px solid transparent;}
-#data-block ul li {padding-bottom: 4px;}
-
 #all_data_len_btn_block {
 	display: flex;
 	flex-direction: row;
@@ -308,92 +296,66 @@ button:focus {outline: none;}
 	color: black;
 	font-size: 18pt;
 	width: 60px;
-	font-weight: bold;
-	border-radius: 7px;
+	border-radius: var(--radius-int);
 	transform: translateY(0px);
 }
-
 #all_data_len_btn_block button:active {transform: translateY(-15px);}
-#all_data_len_btn_block button:hover {background: springgreen;}
+#all_data_len_btn_block button:hover {background: var(--main-bg-clr); color: white;}
 
-
-#delete_data_block {
-	background: white;
+#data-block-item {
 	padding: 12px;
-	border: 2px solid white;
-	border-radius: 6px;
-	box-shadow: var(--blocks-shadow);
+	border-left: 4px solid var(--main-bg-clr);
+	margin-bottom: 24px;
+	border-radius: 0px;
 }
-#delete_data_block div {
-	font-size: 17pt;
-	padding: 12px;
-	font-weight: bold;
+#data-block-item ul {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: flex-start;
 }
-#delete_data_block input {
-	width: 150px;
-	background: white;
-	padding: 8px;
-	border: 2px solid #999999;
-	font-size: 18px;
-	border-radius: 5px 0 0 5px;
-}
-#delete_data_block button {
+#data-block-item ul li {padding: 8px;padding-bottom: 4px;}
+#data-block-item button {
+	border: 2px solid transparent;
 	background: white;
 	color: black;
 	padding: 8px;
-	border: 2px solid #999999;
 	font-size: 18px;
-	border-radius: 0 5px 5px 0;
-	margin-left: -2px;
-	letter-spacing: 1px;
+	font-weight: bold;
+	border-radius: 6px;
+	letter-spacing: 2px;
 }
-#delete_data_block button:hover {
-	border: 2px solid maroon;
-	background: maroon;
-	color: white;
-}
+#data-block-item button:hover {background: var(--delete-btn-clr);color: white;}
+#data-block-item button span {display: none;}
 
-
-#add_data_block,#edit_data_block {
+#edit_data_block {
 	background: white;
 	padding: 12px;
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;
 	border: 2px solid white;
-	border-radius: 6px;
+	border-radius: var(--radius-int);
 	box-shadow: var(--blocks-shadow);
 }
-#add_data_block div, #edit_data_block div {
+#edit_data_block div {
 	font-size: 17pt;
 	padding: 12px;
 	font-weight: bold;
 }
-#add_data_block label, #edit_data_block label {
-	font-size: 14pt;
-	margin-bottom: 4px;
-}
-#add_data_block input, #edit_data_block input {
-	padding: 6px;
-	font-size: 14pt;
-	margin-bottom: 6px;
-	border: 2px solid #999999;
-	border-radius: 5px;
-}
-#add_data_block input:focus, #edit_data_block input:focus {border: 2px solid mediumblue;}
-#add_data_block button, #edit_data_block button {
+#edit_data_block button {
 	padding: 8px;
-	border: 1px solid mediumblue;
-	border-radius: 5px;
+	border: 2px solid var(--blue-clr);
+	border-radius: 6px;
+	background: var(--blue-clr);
+	color: white;
+	font-size: 16px;
+	letter-spacing: 2px;
+	width: 130px;
+}
+#edit_data_block button:hover {
 	background: white;
 	color: black;
-	font-size: 16px;
-	letter-spacing: 1px;
-	width: 150px;
-}
-#add_data_block button:hover, #edit_data_block button:hover {
-	background: mediumblue;
-	color: white;
 }
 
 

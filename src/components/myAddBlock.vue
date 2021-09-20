@@ -56,9 +56,9 @@ export default {
 }
 .dialog-content button {
 	padding: 8px;
-	border: 2px solid var(--blue-clr);
+	border: 2px solid var(--main-bg-clr);
 	border-radius: 6px;
-	background: var(--blue-clr);
+	background: var(--main-bg-clr);
 	color: white;
 	font-size: 16px;
 	letter-spacing: 2px;

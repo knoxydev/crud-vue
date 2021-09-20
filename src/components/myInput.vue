@@ -22,6 +22,6 @@ export default {
 	border-radius: 5px;
 }
 
-#myINP:focus {border: 2px solid var(--blue-clr);}
+#myINP:focus {border: 2px solid var(--main-bg-clr);}
 
 </style>
